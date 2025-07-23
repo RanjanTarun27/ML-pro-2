@@ -1,1 +1,68 @@
+#  Install required libraries
+!pip install langchain openai faiss-cpu PyMuPDF tiktoken
+
+# Optional UI (if running in Streamlit locally)
+# !pip install streamlit
+
+#  Import dependencies
+import os
+import fitz  # PyMuPDF
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.chat_models import ChatOpenAI
+from langchain.chains.question_answering import load_qa_chain
+from langchain.document_loaders import TextLoader
+from langchain.docstore.document import Document
+from google.colab import files
+
+# Set your OpenAI API Key
+os.environ["OPENAI_API_KEY"] = "sk-..."  # Replace with your key
+
+#  Upload your PDF file
+uploaded = files.upload()
+pdf_path = list(uploaded.keys())[0]
+
+#  Extract text from PDF
+def extract_text_from_pdf(pdf_path):
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    return text
+
+raw_text = extract_text_from_pdf(pdf_path)
+print("✅ PDF Text Extracted")
+
+# Split the text into chunks
+text_splitter = CharacterTextSplitter(
+    separator="\n",
+    chunk_size=1000,
+    chunk_overlap=200,
+    length_function=len
+)
+
+texts = text_splitter.split_text(raw_text)
+docs = [Document(page_content=t) for t in texts]
+print(f"✅ Text split into {len(docs)} chunks")
+
+# Create embeddings and store in FAISS
+embeddings = OpenAIEmbeddings()
+vectorstore = FAISS.from_documents(docs, embeddings)
+print("✅ Vector store created")
+
+#  Load the LLM and QA chain
+llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+chain = load_qa_chain(llm, chain_type="stuff")
+
+#Ask questions
+def ask_question(query):
+    relevant_docs = vectorstore.similarity_search(query)
+    response = chain.run(input_documents=relevant_docs, question=query)
+    return response
+
+# Try asking a question
+question = "What is the summary of this document?"
+print("❓ Question:", question)
+print("💡 Answer:", ask_question(question))
 
