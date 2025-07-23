@@ -35,10 +35,28 @@ AskMyDocs is an intelligent chatbot that uses **Retrieval-Augmented Generation (
 
 ---
 
-## 🚀 Getting Started
 
-### 1. Clone the repo
+---
+
+## 🧠 How It Works
+
+1. **Upload PDF** – Reads the full text using `PyMuPDF`.
+2. **Chunking** – Splits document into overlapping chunks (to preserve context).
+3. **Embedding** – Converts text chunks into dense vector embeddings.
+4. **Vector Store** – Saves embeddings into FAISS index.
+5. **Querying** – Takes user question and retrieves top-k relevant chunks.
+6. **Answer Generation** – Sends the chunks + question to OpenAI GPT to generate a response.
+
+---
+
+## ✅ Requirements
+
+- OpenAI API Key 🔑  
+- Python 3.x  
+- `langchain`, `openai`, `faiss-cpu`, `pymupdf`, `tiktoken`, `python-dotenv`
+
+Install all dependencies:
 
 ```bash
-git clone https://github.com/yourusername/askmydocs-rag-chatbot.git
-cd askmydocs-rag-chatbot
+pip install -q langchain openai faiss-cpu pymupdf tiktoken python-dotenv
+
